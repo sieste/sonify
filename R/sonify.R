@@ -37,7 +37,7 @@
 #' GPL (>=2)
 #'
 #' 
-#' @importFrom stats approx pnorm runif spline
+#' @importFrom stats approx runif spline
 #' @importFrom utils tail
 #' @importFrom tuneR WaveMC normalize play
 #'
@@ -238,11 +238,14 @@ MakeSignal = function(yy, waveform, smp_rate) {
       a[i] * sin(i * 2 * pi * cumsum(yy) / smp_rate)
     })
   )
-  # fade in and out to avoid clicking
+  # fade in and out (raised-cosine ramp) to avoid clicking; reaches exactly
+  # 0 and 1 at the boundary samples, unlike the previous pnorm-based fade
+  # which left an audible residual amplitude right at the very ends
   n = length(yy)
   n_fade = min(1000, n)
-  sig[1:n_fade] = sig[1:n_fade] * pnorm(seq(-3,3,len=n_fade))
-  sig[(n-n_fade+1):n] = sig[(n-n_fade+1):n] * (1-pnorm(seq(-3,3,len=n_fade)))
+  fade = (1 - cos(pi * seq(0, 1, length.out=n_fade))) / 2
+  sig[1:n_fade] = sig[1:n_fade] * fade
+  sig[(n-n_fade+1):n] = sig[(n-n_fade+1):n] * rev(fade)
 
   return(sig)
 }

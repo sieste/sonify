@@ -2,7 +2,6 @@
 
 export(sonify)
 importFrom(stats,approx)
-importFrom(stats,pnorm)
 importFrom(stats,runif)
 importFrom(stats,spline)
 importFrom(tuneR,WaveMC)
