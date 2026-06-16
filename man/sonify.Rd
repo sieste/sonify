@@ -55,7 +55,7 @@ sonify(
 
 \item{na_freq}{Frequency in Hz that is used for NA data. Default is 300.}
 
-\item{stereo}{If TRUE a left-to-right transition is simulated. Default is TRUE.}
+\item{stereo}{If TRUE a left-to-right transition is simulated, using equal power panning. Default is TRUE.}
 
 \item{smp_rate}{The sampling rate of the wav file. Default is 44100 (CD quality)}
 

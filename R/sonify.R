@@ -14,7 +14,7 @@
 #' @param noise_interval A numeric vector of length (at least) 2; only the first two elements are used. White noise is overlayed whenever y is inside this interval (if noise_amp > 0) or outside this interval (if noise_amp < 0). For example, set to c(-Inf, 0) to indicate data in the negative range. Default is c(0,0) (no noise).
 #' @param noise_amp Amplitude (between 0 and 1) of the noise used for noise_interval. Negative values (between 0 and -1) invert noise_interval, i.e. noise is overlaid whenever y falls outside `noise_interval`. Default is 0.5.
 #' @param amp_level Amplitude level between 0 and 1 to adjust the volume. Default is 1.
-#' @param stereo If TRUE a left-to-right transition is simulated. Default is TRUE.
+#' @param stereo If TRUE a left-to-right transition is simulated, using equal power panning. Default is TRUE.
 #' @param smp_rate The sampling rate of the wav file. Default is 44100 (CD quality)
 #' @param flim The frequency range in Hz to which the data is mapped. The frequency mapping is linear. Default is c(440, 880).
 #' @param na_freq Frequency in Hz that is used for NA data. Default is 300.
@@ -160,15 +160,17 @@ function(x=NULL, y=NULL,
   }
   signal[inds] = signal[inds] + abs(noise_amp) * runif(sum(inds))
     
-  # multiply by linear function to simulate left-to-right transition
+  # pan left-to-right using an equal-power (sin/cos) law, so that the
+  # combined acoustic power stays constant; a simple linear amplitude
+  # crossfade would create a ~3dB loudness dip in the middle of the pan
   if (stereo) {
-    ramp = seq(0, 1, length.out=n)
+    ramp = seq(0, pi/2, length.out=n)
   } else {
-    ramp = rep(0.5, times=n)
+    ramp = rep(pi/4, times=n)
   }
 
-  Rchannel = round(32000 * signal * ramp)
-  Lchannel = round(32000 * signal * (1 - ramp))
+  Rchannel = round(32000 * signal * sin(ramp))
+  Lchannel = round(32000 * signal * cos(ramp))
   
   # construct tuneR wave object
   final = tuneR::WaveMC(data = data.frame(FR=Rchannel, FL=Lchannel), samp.rate=smp_rate, bit=16)
