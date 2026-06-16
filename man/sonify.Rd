@@ -4,12 +4,27 @@
 \alias{sonify}
 \title{Data sonification}
 \usage{
-sonify(x = NULL, y = NULL, waveform = c("sine", "square", "triangle",
-  "sawtooth"), interpolation = c("spline", "linear", "constant"),
-  duration = 5, flim = c(440, 880), ticks = NULL, tick_len = 0.05,
-  pulse_len = 0, pulse_amp = 0.2, noise_interval = c(0, 0),
-  noise_amp = 0.5, amp_level = 1, na_freq = 300, stereo = TRUE,
-  smp_rate = 44100, play = TRUE, player = NULL, player_args = NULL)
+sonify(
+  x = NULL,
+  y = NULL,
+  waveform = c("sine", "square", "triangle", "sawtooth"),
+  interpolation = c("spline", "linear", "constant"),
+  duration = 5,
+  flim = c(440, 880),
+  ticks = NULL,
+  tick_len = 0.05,
+  pulse_len = 0,
+  pulse_amp = 0.2,
+  noise_interval = c(0, 0),
+  noise_amp = 0.5,
+  amp_level = 1,
+  na_freq = 300,
+  stereo = TRUE,
+  smp_rate = 44100,
+  play = TRUE,
+  player = NULL,
+  player_args = NULL
+)
 }
 \arguments{
 \item{x}{The x values. Can be used when y values are unevenly spaced. Default is -length(y)/2:length(y)/2}
@@ -48,7 +63,7 @@ sonify(x = NULL, y = NULL, waveform = c("sine", "square", "triangle",
 
 \item{player}{(Path to) a program capable of playing a wave file from the command line. Under windows, the default is "mplay32.exe" or "wmplayer.exe" (as specified in `?tuneR::play`). Under Linux, the default is "mplayer". Under OS X, the default is "afplay". See `?tuneR::play` for details.}
 
-\item{player_args}{Further arguments passed to the wav player. Ignored when `player` is unspecified. Under Windows the default is `"/play /close"`. Under Linux the default is `&>/dev/null`. Under OS X the default is "". See `?tuneR::play` for details.}
+\item{player_args}{Further arguments passed to the wav player. Ignored when `player` is unspecified. Under Windows the default is `"/play /close"`. Under Linux the default is `"> /dev/null 2>&1"`. Under OS X the default is "". See `?tuneR::play` for details.}
 }
 \value{
 The synthesized sound saved as a `tuneR::WaveMC` object.
@@ -60,15 +75,15 @@ Sonification (or audification) is the process of representing data by sounds in 
 
 GPL (>=2)
 }
+
 \examples{
 obj = sonify(dnorm(seq(-3,3,.1)), duration=1, play=FALSE)
 \dontrun{sonify(dnorm(seq(-3,3,.1)), duration=1)}
 
 }
-\author{
-Stefan Siegert \email{s.siegert@exeter.ac.uk} (please report bugs!)
-}
 \seealso{
 tuneR::play, tuneR::WaveMC
 }
-
+\author{
+Stefan Siegert \email{s.siegert@exeter.ac.uk} (please report bugs!)
+}

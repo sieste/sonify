@@ -20,7 +20,7 @@
 #' @param na_freq Frequency in Hz that is used for NA data. Default is 300.
 #' @param play If TRUE, the sound is played. Default is TRUE. 
 #' @param player (Path to) a program capable of playing a wave file from the command line. Under windows, the default is "mplay32.exe" or "wmplayer.exe" (as specified in `?tuneR::play`). Under Linux, the default is "mplayer". Under OS X, the default is "afplay". See `?tuneR::play` for details.
-#' @param player_args Further arguments passed to the wav player. Ignored when `player` is unspecified. Under Windows the default is `"/play /close"`. Under Linux the default is `&>/dev/null`. Under OS X the default is "". See `?tuneR::play` for details.
+#' @param player_args Further arguments passed to the wav player. Ignored when `player` is unspecified. Under Windows the default is `"/play /close"`. Under Linux the default is `"> /dev/null 2>&1"`. Under OS X the default is "". See `?tuneR::play` for details.
 #'
 #' @return The synthesized sound saved as a `tuneR::WaveMC` object.
 #' 
@@ -177,7 +177,7 @@ function(x=NULL, y=NULL,
   if (play) {
     if (is.null(player)) { # try to find a wav player
       if (Sys.info()[['sysname']] == 'Linux') {
-        tuneR::play(final, 'mplayer', '&> /dev/null')
+        tuneR::play(final, 'mplayer', '> /dev/null 2>&1')
       } else if (Sys.info()[['sysname']] == 'Darwin') {
         tuneR::play(final, 'afplay', '')
       } else {
