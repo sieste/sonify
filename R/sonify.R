@@ -20,7 +20,7 @@
 #' @param pitch_mapping How `y` is mapped onto `flim`. `"linear"` maps linearly in Hz, so equal steps in the data give equal steps in Hz. `"logarithmic"` maps linearly in log-frequency, so equal steps in the data give equal steps in perceived pitch. Default is `"linear"`.
 #' @param na_freq Frequency in Hz that is used for NA data. Default is 300.
 #' @param play If TRUE, the sound is played. Default is TRUE. 
-#' @param player (Path to) a program capable of playing a wave file from the command line. Under windows, the default is "mplay32.exe" or "wmplayer.exe" (as specified in `?tuneR::play`). Under Linux, the default is "mplayer"; if `mplayer` is not found on the PATH, a warning is issued and no sound is played. Under OS X, the default is "afplay". See `?tuneR::play` for details.
+#' @param player (Path to) a program capable of playing a wave file from the command line. Under windows, the default is "mplay32.exe" or "wmplayer.exe" (as specified in `?tuneR::play`). Under Linux, the default is "mpv" if found on the PATH, otherwise "mplayer"; if neither is found, a warning is issued and no sound is played. Under OS X, the default is "afplay". See `?tuneR::play` for details.
 #' @param player_args Further arguments passed to the wav player, as a single string (e.g. `"-novideo -really-quiet"`). Ignored when `player` is unspecified. Under Windows the default is `"/play /close"`. Under Linux the default is `"> /dev/null 2>&1"`. Under OS X the default is "". See `?tuneR::play` for details.
 #'
 #' @return The synthesized sound saved as a `tuneR::WaveMC` object.
@@ -186,12 +186,14 @@ function(x=NULL, y=NULL,
   if (play) {
     if (is.null(player)) { # try to find a wav player
       if (Sys.info()[['sysname']] == 'Linux') {
-        if (nzchar(Sys.which('mplayer'))) {
+        if (nzchar(Sys.which('mpv'))) {
+          tuneR::play(final, 'mpv', '> /dev/null 2>&1')
+        } else if (nzchar(Sys.which('mplayer'))) {
           tuneR::play(final, 'mplayer', '> /dev/null 2>&1')
         } else {
-          warning("'mplayer' was not found on the PATH; no sound was played. ",
-                  "Install mplayer, or pass the `player` argument to use a ",
-                  "different command-line wav player (e.g. player='mpv').",
+          warning("Neither 'mpv' nor 'mplayer' was found on the PATH; no sound ",
+                  "was played. Install one of them, or pass the `player` ",
+                  "argument to use a different command-line wav player.",
                   call.=FALSE)
         }
       } else if (Sys.info()[['sysname']] == 'Darwin') {
