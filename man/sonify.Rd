@@ -43,11 +43,11 @@ sonify(
 
 \item{tick_len}{The duration of each tick sound.}
 
-\item{pulse_len}{Length of white-noise pulses (in seconds) to mark the individual x-values. Default is 0.}
+\item{pulse_len}{Length of white-noise pulses (in seconds) to mark the individual x-values. Ignored if all (non-`NA`) x-values are identical. Default is 0.}
 
 \item{pulse_amp}{Amplitude of pulses between 0 and 1. Default is 0.2.}
 
-\item{noise_interval}{White noise is overlayed whenever y is inside this interval (if noise_amp > 0) or outside this interval (if noise_amp < 0). For example, set to c(-Inf, 0) to indicate data in the negative range. Default is c(0,0) (no noise).}
+\item{noise_interval}{A numeric vector of length (at least) 2; only the first two elements are used. White noise is overlayed whenever y is inside this interval (if noise_amp > 0) or outside this interval (if noise_amp < 0). For example, set to c(-Inf, 0) to indicate data in the negative range. Default is c(0,0) (no noise).}
 
 \item{noise_amp}{Amplitude (between 0 and 1) of the noise used for noise_interval. Negative values (between 0 and -1) invert noise_interval, i.e. noise is overlaid whenever y falls outside `noise_interval`. Default is 0.5.}
 

@@ -7,11 +7,11 @@
 #' @param waveform The waveform used for the sound. One of `sine`, `square`, `triangle`, `sawtooth`. Default is `sine`.
 #' @param ticks The location of x-axis ticks. The ticks are indicated by short bursts of a sawtooth wave (duration set by `tick_len`). The default is NULL (no ticks).
 #' @param tick_len The duration of each tick sound.
-#' @param pulse_len Length of white-noise pulses (in seconds) to mark the individual x-values. Default is 0.
+#' @param pulse_len Length of white-noise pulses (in seconds) to mark the individual x-values. Ignored if all (non-`NA`) x-values are identical. Default is 0.
 #' @param pulse_amp Amplitude of pulses between 0 and 1. Default is 0.2.
 #' @param interpolation The interpolation method to connect the y-values before generating the sound. One of `spline`, `linear`, `constant`. `spline` and `linear` generate continous transitions between frequencies, `constant` changes frequencies abruptly. Note: If `interpolation=constant`, y[1] is played from x[1] to x[2], y[2] is played from x[2] to x[3], etc, and the last y-value y[n] is played for the duration x[n] - x[n-1]. Default is `spline`.
 #' @param duration Total duration of the generated sound in seconds. Default is 5.
-#' @param noise_interval White noise is overlayed whenever y is inside this interval (if noise_amp > 0) or outside this interval (if noise_amp < 0). For example, set to c(-Inf, 0) to indicate data in the negative range. Default is c(0,0) (no noise).
+#' @param noise_interval A numeric vector of length (at least) 2; only the first two elements are used. White noise is overlayed whenever y is inside this interval (if noise_amp > 0) or outside this interval (if noise_amp < 0). For example, set to c(-Inf, 0) to indicate data in the negative range. Default is c(0,0) (no noise).
 #' @param noise_amp Amplitude (between 0 and 1) of the noise used for noise_interval. Negative values (between 0 and -1) invert noise_interval, i.e. noise is overlaid whenever y falls outside `noise_interval`. Default is 0.5.
 #' @param amp_level Amplitude level between 0 and 1 to adjust the volume. Default is 1.
 #' @param stereo If TRUE a left-to-right transition is simulated. Default is TRUE.
@@ -72,10 +72,11 @@ function(x=NULL, y=NULL,
   } 
   stopifnot(length(x) == length(y))
   stopifnot(is.numeric(flim), length(flim)>1)
+  stopifnot(is.numeric(noise_interval), length(noise_interval)>1)
 
   flim = sort(flim[1:2])
   if (!is.null(ticks)) ticks = sort(ticks)
-  noise_interval = sort(noise_interval)
+  noise_interval = sort(noise_interval[1:2])
   noise_amp = min(max(noise_amp, -1), 1)
   waveform = match.arg(waveform)
   interpolation = match.arg(interpolation)
@@ -137,10 +138,12 @@ function(x=NULL, y=NULL,
     }
   }
     
-  # add pulses of white noise to mark x values 
-  if (pulse_len > 0) {
+  # add pulses of white noise to mark x values
+  # (skipped if all non-NA x are identical, since x-locations would be undefined)
+  if (pulse_len > 0 && diff(range(x, na.rm=TRUE)) > 0) {
     n_pulse_half = round(pulse_len * smp_rate / 2)
-    i_pulses = round((x - min(x)) / diff(range(x)) * (n-1)) + 1
+    i_pulses = round((x - min(x, na.rm=TRUE)) / diff(range(x, na.rm=TRUE)) * (n-1)) + 1
+    i_pulses = i_pulses[!is.na(i_pulses)]
     for (i in seq(-n_pulse_half, n_pulse_half)) {
       j = i_pulses + i
       j = j[j > 0 & j <= n]
@@ -149,15 +152,13 @@ function(x=NULL, y=NULL,
   }
 
   # add white noise whenever y is within (or outside) `noise_interval`
-  if(length(noise_interval) == 2) {
-    # rescale noise_interval to frequency range (use same transformation as for y)
-    noise_interval = (noise_interval - y_ran[1]) / diff(y_ran) * diff(flim) + flim[1]
-    inds = (yy > noise_interval[1] & yy <= noise_interval[2])
-    if (noise_amp < 0) {
-      inds = !inds
-    }
-    signal[inds] = signal[inds] + abs(noise_amp) * runif(sum(inds))
+  # rescale noise_interval to frequency range (use same transformation as for y)
+  noise_interval = (noise_interval - y_ran[1]) / diff(y_ran) * diff(flim) + flim[1]
+  inds = (yy > noise_interval[1] & yy <= noise_interval[2])
+  if (noise_amp < 0) {
+    inds = !inds
   }
+  signal[inds] = signal[inds] + abs(noise_amp) * runif(sum(inds))
     
   # multiply by linear function to simulate left-to-right transition
   if (stereo) {
