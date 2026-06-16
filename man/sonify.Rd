@@ -11,6 +11,7 @@ sonify(
   interpolation = c("spline", "linear", "constant"),
   duration = 5,
   flim = c(440, 880),
+  pitch_mapping = c("linear", "logarithmic"),
   ticks = NULL,
   tick_len = 0.05,
   pulse_len = 0,
@@ -37,7 +38,9 @@ sonify(
 
 \item{duration}{Total duration of the generated sound in seconds. Default is 5.}
 
-\item{flim}{The frequency range in Hz to which the data is mapped. The frequency mapping is linear. Default is c(440, 880).}
+\item{flim}{The frequency range in Hz to which the data is mapped. Default is c(440, 880).}
+
+\item{pitch_mapping}{How `y` is mapped onto `flim`. `"linear"` maps linearly in Hz, so equal steps in the data give equal steps in Hz. `"logarithmic"` maps linearly in log-frequency, so equal steps in the data give equal steps in perceived pitch. Default is `"linear"`.}
 
 \item{ticks}{The location of x-axis ticks. The ticks are indicated by short bursts of a sawtooth wave (duration set by `tick_len`). The default is NULL (no ticks).}
 

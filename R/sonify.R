@@ -16,7 +16,8 @@
 #' @param amp_level Amplitude level between 0 and 1 to adjust the volume. Default is 1.
 #' @param stereo If TRUE a left-to-right transition is simulated, using equal power panning. Default is TRUE.
 #' @param smp_rate The sampling rate of the wav file. Default is 44100 (CD quality)
-#' @param flim The frequency range in Hz to which the data is mapped. The frequency mapping is linear. Default is c(440, 880).
+#' @param flim The frequency range in Hz to which the data is mapped. Default is c(440, 880).
+#' @param pitch_mapping How `y` is mapped onto `flim`. `"linear"` maps linearly in Hz, so equal steps in the data give equal steps in Hz. `"logarithmic"` maps linearly in log-frequency, so equal steps in the data give equal steps in perceived pitch. Default is `"linear"`.
 #' @param na_freq Frequency in Hz that is used for NA data. Default is 300.
 #' @param play If TRUE, the sound is played. Default is TRUE. 
 #' @param player (Path to) a program capable of playing a wave file from the command line. Under windows, the default is "mplay32.exe" or "wmplayer.exe" (as specified in `?tuneR::play`). Under Linux, the default is "mplayer"; if `mplayer` is not found on the PATH, a warning is issued and no sound is played. Under OS X, the default is "afplay". See `?tuneR::play` for details.
@@ -45,14 +46,15 @@
 
 sonify = 
 function(x=NULL, y=NULL,
-         waveform=c('sine', 'square', 'triangle', 'sawtooth'), 
+         waveform=c('sine', 'square', 'triangle', 'sawtooth'),
          interpolation=c('spline', 'linear', 'constant'),
-         duration=5, flim=c(440, 880), 
-         ticks=NULL, tick_len=0.05, 
+         duration=5, flim=c(440, 880),
+         pitch_mapping=c('linear', 'logarithmic'),
+         ticks=NULL, tick_len=0.05,
          pulse_len=0, pulse_amp=0.2,
          noise_interval=c(0, 0), noise_amp=0.5,
-         amp_level=1, na_freq=300, 
-         stereo=TRUE, smp_rate=44100, 
+         amp_level=1, na_freq=300,
+         stereo=TRUE, smp_rate=44100,
          play=TRUE, player=NULL, player_args=NULL)
 {
 
@@ -80,6 +82,10 @@ function(x=NULL, y=NULL,
   noise_amp = min(max(noise_amp, -1), 1)
   waveform = match.arg(waveform)
   interpolation = match.arg(interpolation)
+  pitch_mapping = match.arg(pitch_mapping)
+  if (pitch_mapping == 'logarithmic') {
+    stopifnot(all(flim > 0))
+  }
 
   # if only one y-value is given, set interpolation = spline; only spline
   # interpolation will not throw an error; also spline will return a constant,
@@ -106,8 +112,8 @@ function(x=NULL, y=NULL,
   }
 
 
-  # rescale y values to desired frequency range 
-  yy = (y - y_ran[1]) / diff(y_ran) * diff(flim) + flim[1]
+  # rescale y values to desired frequency range
+  yy = MapToFreq(y, y_ran=y_ran, flim=flim, pitch_mapping=pitch_mapping)
 
   # replace NA's by na_freq
   yy[is.na(yy)] = na_freq
@@ -153,7 +159,7 @@ function(x=NULL, y=NULL,
 
   # add white noise whenever y is within (or outside) `noise_interval`
   # rescale noise_interval to frequency range (use same transformation as for y)
-  noise_interval = (noise_interval - y_ran[1]) / diff(y_ran) * diff(flim) + flim[1]
+  noise_interval = MapToFreq(noise_interval, y_ran=y_ran, flim=flim, pitch_mapping=pitch_mapping)
   inds = (yy > noise_interval[1] & yy <= noise_interval[2])
   if (noise_amp < 0) {
     inds = !inds
@@ -201,6 +207,19 @@ function(x=NULL, y=NULL,
   # return the synthesized WaveMC object
   invisible(final)
 
+}
+
+
+# map data values v onto the frequency range flim, either linearly in Hz
+# or linearly in log-frequency (so that equal steps in v give equal
+# perceived pitch steps, rather than equal Hz steps)
+MapToFreq = function(v, y_ran, flim, pitch_mapping) {
+  if (pitch_mapping == 'logarithmic') {
+    log_flim = log(flim)
+    exp((v - y_ran[1]) / diff(y_ran) * diff(log_flim) + log_flim[1])
+  } else {
+    (v - y_ran[1]) / diff(y_ran) * diff(flim) + flim[1]
+  }
 }
 
 
