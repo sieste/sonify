@@ -20,7 +20,7 @@ example is wrapped in `\dontrun{}` because it needs an external audio player.
 ## Test environments
 
 * local: Ubuntu 23.10, R 4.3.1
-* win-builder: R-devel
+* win-builder: R-devel (2026-10-05 r90641 ucrt), Status: OK
 
 ## R CMD check results
 
