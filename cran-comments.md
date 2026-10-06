@@ -1,34 +1,38 @@
 ## Summary
 
-This is a resubmission of an existing CRAN package (`sonify`, last on
-CRAN as version 0.0-1, published 2017-02-01).
+This is an update of an existing CRAN package (`sonify`, currently on CRAN
+as version 0.0-1, published 2017-02-01).
 
-This release (0.0-2) fixes a bug reported by a user: `sonify()` failed
-to play any sound on Linux systems where `/bin/sh` is `dash` rather than
-`bash` (e.g. Debian, Ubuntu). The default Linux playback call relied on
-the bash-only `&>` redirection operator, which `dash` parses
-differently, causing `mplayer` to be invoked with no arguments and the
-temporary wav file to be treated as a shell command, producing
-`Permission denied` and no audio. The fix uses POSIX-compatible
-redirection (`> /dev/null 2>&1`) that works under both shells. See
-NEWS.md for details.
+Changes in 0.1-0 (see NEWS.md for details):
 
-No new dependencies, no API changes, no deprecated/defunct functions.
+* Bug fix: on Linux systems where `/bin/sh` is `dash` (Debian, Ubuntu),
+  `sonify()` played no sound because the default player call used the
+  bash-only `&>` redirection. It now uses POSIX `> /dev/null 2>&1`.
+* New argument `pitch_mapping` that allows logarithmic (perceptual) frequency
+  mapping. The default keeps the previous behaviour.
+* Equal-power stereo panning, click-free fades, `mpv` preferred over
+  `mplayer` on Linux, and a warning when no player is found.
+* `tuneR` moved from Depends to Imports. A small test suite was added.
+
+Examples and tests never play audio (`play = FALSE`). The interactive
+example is wrapped in `\dontrun{}` because it needs an external audio player.
 
 ## Test environments
 
 * local: Ubuntu 23.10, R 4.3.1
+* win-builder: R-devel
 
 ## R CMD check results
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 1 note
 
-* `checking for future file timestamps ... NOTE` — environment could not
-  reach an NTP time server in this sandbox; not expected on CRAN's
-  check machines.
-* `checking HTML version of manual ... NOTE` — `tidy` is not installed
-  in this sandbox; unrelated to the package.
+* checking CRAN incoming feasibility ... NOTE
+  Maintainer: 'Stefan Siegert <s.siegert@exeter.ac.uk>'
+
+  (The local check also reported "unable to verify current time" and skipped
+  HTML validation because `tidy` is not installed. Both are caused by the
+  local environment, not the package.)
 
 ## Downstream dependencies
 
-None (checked via CRAN package search; no reverse dependencies).
+There are currently no reverse dependencies on CRAN.
